@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF.js on Canvas</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js"></script>
+    <style>
+        body { position: relative; }
+        #pdf-canvas { border: 1px solid black; }
+        .pdf-input {
+            position: absolute;
+            border: 1px solid #ccc;
+            padding: 2px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pdf-canvas"></canvas>
+    <script>
+        const pdfUrl = 'Complaint.pdf';
+
+        let pdfDoc = null;
+        let pageNum = 1;
+        let scale = 1.5;
+        let canvas = document.getElementById('pdf-canvas');
+        let context = canvas.getContext('2d');
+
+        // Fetch the PDF document
+        pdfjsLib.getDocument(pdfUrl).promise.then(pdfDoc_ => {
+            pdfDoc = pdfDoc_;
+            renderPage(pageNum);
+        });
+
+        function renderPage(num) {
+            pdfDoc.getPage(num).then(page => {
+                let viewport = page.getViewport({ scale: scale });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                let renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+
+                page.render(renderContext).promise.then(() => {
+                    // Add click event listener after rendering is done
+                    canvas.addEventListener('click', handleCanvasClick);
+                });
+            });
+        }
+
+        function handleCanvasClick(event) {
+            let rect = canvas.getBoundingClientRect();
+            let x = event.clientX - rect.left;
+            let y = event.clientY - rect.top;
+
+            pdfDoc.getPage(pageNum).then(page => {
+                return page.getTextContent();
+            }).then(textContent => {
+                textContent.items.forEach(item => {
+                    let transform = item.transform;
+                    let xOffset = transform[4] * scale;
+                    let yOffset = canvas.height - transform[5] * scale;
+                    let width = (item.width * scale);
+                    let height = (item.height * scale);
+
+                    if (x >= xOffset && x <= xOffset + width && y >= yOffset - height && y <= yOffset) {
+                        createInputOverlay(xOffset, yOffset - height, width, height, item.str);
+                    }
+                });
+            });
+        }
+
+        function createInputOverlay(x, y, width, height, text) {
+            let input = document.createElement('input');
+            input.type = 'text';
+            input.value = text;
+            input.style.left = `${x}px`;
+            input.style.top = `${y}px`;
+            input.style.width = `${width}px`;
+            input.style.height = `${height}px`;
+            input.className = 'pdf-input';
+
+            document.body.appendChild(input);
+
+            input.addEventListener('blur', () => {
+                let newText = input.value;
+                if (newText !== text) {
+                    sendTextUpdate(x, y, width, height, newText);
+                }
+                document.body.removeChild(input);
+            });
+
+            input.focus();
+        }
+
+        function sendTextUpdate(x, y, width, height, newText) {
+            fetch('/update_text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    page_num: pageNum,
+                    x: x,
+                    y: y,
+                    width: width,
+                    height: height,
+                    new_text: newText
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log('Text updated successfully');
+                    // Optionally, re-render the page to show the updated text
+                    renderPage(pageNum);
+                } else {
+                    console.error('Failed to update text');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

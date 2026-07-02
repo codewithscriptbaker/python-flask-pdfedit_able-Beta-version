@@ -1,0 +1,326 @@
+:root {
+    --sidebar-width: 260px;
+    --bg: #1e1e2e;
+    --panel: #2a2a3d;
+    --border: #3d3d5c;
+    --accent: #6c8cff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: #e0e0e0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow: hidden;
+    height: 100vh;
+}
+
+.editor-layout {
+    display: flex;
+    height: calc(100vh - 56px);
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+    margin: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.drop-zone {
+    margin: 12px;
+    padding: 20px 12px;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    text-align: center;
+    color: #888;
+    cursor: pointer;
+}
+
+.drop-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(108, 140, 255, 0.1);
+}
+
+.file-list {
+    list-style: none;
+    margin: 0;
+    padding: 8px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.file-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.file-list li:hover { background: rgba(255,255,255,0.06); }
+.file-list li.active { background: rgba(108, 140, 255, 0.2); }
+
+.file-list li .file-info { flex: 1; min-width: 0; }
+.file-list li .file-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+.file-list li .file-meta { font-size: 0.75rem; color: #888; }
+
+.version-list { max-height: 180px; flex: none; }
+
+.editor-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin: 8px 8px 8px 0;
+    overflow: hidden;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-right: 8px;
+    border-right: 1px solid var(--border);
+}
+
+.toolbar-group:last-child { border-right: none; }
+
+#edit-mode-group .btn.active,
+#btn-add-text.active,
+#format-toolbar .btn.active {
+    background: var(--accent) !important;
+    border-color: var(--accent) !important;
+    color: #fff !important;
+}
+
+.fmt-select {
+    width: auto;
+    min-width: 58px;
+    background: var(--panel);
+    color: #e0e0e0;
+    border-color: var(--border);
+    font-size: 0.8rem;
+    padding: 2px 6px;
+}
+
+.fmt-color-input {
+    width: 32px;
+    height: 30px;
+    padding: 2px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    background: transparent;
+}
+
+#format-toolbar {
+    align-items: center;
+    gap: 4px;
+}
+
+.page-indicator, .zoom-indicator {
+    font-size: 0.85rem;
+    min-width: 70px;
+    text-align: center;
+    color: #ccc;
+}
+
+.welcome {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.canvas-viewport {
+    flex: 1;
+    overflow: hidden;
+    background: #12121a;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+}
+
+.edit-hint {
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 6px 12px;
+}
+
+.page-container {
+    flex: 1;
+    overflow: auto;
+    padding: 24px;
+}
+
+.canvas-wrapper {
+    position: relative;
+    margin: 0 auto;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    background: #fff;
+}
+
+#pdf-canvas { display: block; }
+
+.text-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.text-layer.add-text-mode {
+    pointer-events: auto;
+    cursor: crosshair;
+}
+
+.text-hit {
+    position: absolute;
+    pointer-events: auto;
+    cursor: text;
+    background: transparent;
+    border: none;
+}
+
+.text-hit:hover {
+    background: rgba(108, 140, 255, 0.08);
+}
+
+.text-editor-content {
+    position: absolute;
+    pointer-events: auto;
+    z-index: 10;
+    background: #fff;
+    padding: 0 1px;
+    margin: 0;
+    border: none;
+    outline: 1px solid var(--accent);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow: hidden;
+    min-height: 1em;
+}
+
+.text-editor-content:focus {
+    outline: 2px solid var(--accent);
+}
+
+.text-box-widget {
+    position: absolute;
+    pointer-events: auto;
+    z-index: 15;
+    min-width: 100px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    border: 1px solid var(--accent);
+}
+
+.text-box-chrome {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 6px;
+    background: #f0f4ff;
+    border-bottom: 1px solid #d8e0f0;
+    border-radius: 4px 4px 0 0;
+    font-size: 0.7rem;
+    color: #555;
+    user-select: none;
+}
+
+.text-box-drag {
+    cursor: grab;
+    padding: 2px 4px;
+    color: #888;
+}
+
+.text-box-drag:active { cursor: grabbing; }
+
+.text-box-label {
+    flex: 1;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.text-box-close {
+    border: none;
+    background: transparent;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: #888;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+.text-box-close:hover { color: #c00; }
+
+.text-box-content {
+    padding: 4px 6px;
+    min-height: 1.4em;
+    outline: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #fff;
+}
+
+.toast-container .toast {
+    background: var(--panel);
+    color: #e0e0e0;
+    border: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+    .sidebar { display: none; }
+}

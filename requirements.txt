@@ -1,0 +1,11 @@
+# Python dependencies for python-flask-pdfedit
+# Install with: pip install -r requirements.txt
+
+# Web framework (app.py, app2.py)
+Flask>=3.0.0,<4.0.0
+
+# PDF editing via PyMuPDF
+PyMuPDF>=1.24.0,<2.0.0
+
+# Werkzeug (included with Flask; listed for secure_filename)
+Werkzeug>=3.0.0,<4.0.0
